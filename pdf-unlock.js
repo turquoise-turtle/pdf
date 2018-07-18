@@ -30,18 +30,21 @@ function dragenter(e) {
 }
 
 function dragover(e) {
+	var dropbox = document.querySelector('.container');
 	e.stopPropagation();
 	e.preventDefault();
 	dropbox.classList.add('animated');
 }
 
 function dragleave(e) {
+	var dropbox = document.querySelector('.container');
 	e.stopPropagation();
 	e.preventDefault();
 	dropbox.classList.remove('animated');
 }
 
 function drop(e) {
+	var dropbox = document.querySelector('.container');
 	e.stopPropagation();
 	e.preventDefault();
 	dropbox.classList.remove('animated');
