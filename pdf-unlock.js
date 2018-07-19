@@ -10,6 +10,22 @@ document.addEventListener('DOMContentLoaded', function(e){
 	dropbox.addEventListener("dragover", dragover, false);
 	dropbox.addEventListener("drop", drop, false);
 	dropbox.addEventListener("dragleave", dragleave, false);
+	
+	
+	var text = document.querySelector('#printmenu');
+	// Firefox 1.0+
+	var isFirefox = typeof InstallTrigger !== 'undefined';
+	// Safari 3.0+ "[object HTMLElementConstructor]" 
+	var isSafari = /constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && safari.pushNotification));
+	// Chrome 1+
+	var isChrome = !!window.chrome && !!window.chrome.webstore;
+	
+	if (isFirefox || isSafari) {
+		text.innerText = 'In the bottom left hand corner click PDF, and choose Save As PDF';
+	} else {
+		//isChrome
+		text.innerText = 'From there, under Destination click Change, and choose Save As PDF';
+	}
 }, false);
 
 document.addEventListener('pagesloaded', function (e) {
@@ -18,9 +34,10 @@ document.addEventListener('pagesloaded', function (e) {
 
 function handleFiles(files) {
 	document.querySelector('#outerContainer').hidden = false;
-	document.querySelector('#pdf-unlock-box').hidden = true;
 	var fileblob = files[0];
 	PDFViewerApplication.open(URL.createObjectURL(fileblob));
+	var box = document.querySelector('#pdf-unlock-box'); //.hidden = true;
+	box.parentNode.removeChild(box);
 }
 
 

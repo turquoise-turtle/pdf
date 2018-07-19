@@ -73,6 +73,8 @@ See https://github.com/adobe-type-tools/cmap-resources
 		}
     </style>
 	<script src="pdf-unlock.js"></script>
+	<link rel="icon" type="image/png" href="favicon-32x32.png" sizes="32x32" />
+	<link rel="icon" type="image/png" href="favicon-16x16.png" sizes="16x16" />
 	<!-- end section -->
   </head>
 
@@ -84,9 +86,7 @@ See https://github.com/adobe-type-tools/cmap-resources
 				<input type="file" id="fileElem" style="display: none" accept=".pdf">
 				<label id="label" for="fileElem"><strong>Select pdf</strong></label>
 				<p>When the pdf is loaded, it will open the print menu.</p>
-				<p>From there, under Destination click Change, and choose Save As PDF</p>
-				<br>
-				<p>Disregard any red error boxes</p>
+				<p id="printmenu">From there, under Destination click Change, and choose Save As PDF</p>
 			</section>
 		</section>
   	</section>
