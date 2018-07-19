@@ -12,19 +12,30 @@ document.addEventListener('DOMContentLoaded', function(e){
 	dropbox.addEventListener("dragleave", dragleave, false);
 	
 	
-	var text = document.querySelector('#printmenu');
 	// Firefox 1.0+
 	var isFirefox = typeof InstallTrigger !== 'undefined';
 	// Safari 3.0+ "[object HTMLElementConstructor]" 
 	var isSafari = /constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && safari.pushNotification));
 	// Chrome 1+
 	var isChrome = !!window.chrome && !!window.chrome.webstore;
+	var text = document.querySelector('#printtext');
+	var s1 = document.querySelector('#screenshot1');
+	var s2 = document.querySelector('#screenshot2');
+	var s3 = document.querySelector('#screenshot3');
 	
-	if (isFirefox || isSafari) {
+	if (isFirefox) {
 		text.innerText = 'In the bottom left hand corner click PDF, and choose Save As PDF';
+		s1.src = 'screenshots/f1.png';
+		s2.src = 'screenshots/f2.png';
+		s3.parentNode.removeChild(s3);
+	} else if (isSafari) {
+		text.innerText = 'In the bottom left hand corner click PDF, and choose Save As PDF';
+		s1.src = 'screenshots/s1.png';
+		s2.src = 'screenshots/s2.png';
+		s3.parentNode.removeChild(s3);
 	} else {
-		//isChrome
-		text.innerText = 'From there, under Destination click Change, and choose Save As PDF';
+		//isChrome, so don't change stuff
+		//text.innerText = 'From there, under Destination click Change, and choose Save As PDF';
 	}
 }, false);
 
