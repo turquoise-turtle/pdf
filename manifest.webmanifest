@@ -1,0 +1,16 @@
+{
+	"name": "Unlock PDF",
+	"short_name": "Unlock PDF",
+	"description": "Save a copy of a password-protected or restricted PDF without the password. Your files never leave your device.",
+	"lang": "en-AU",
+	"start_url": "./",
+	"scope": "./",
+	"display": "standalone",
+	"background_color": "#031203",
+	"theme_color": "#031203",
+	"icons": [
+		{ "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+		{ "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+		{ "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+	]
+}

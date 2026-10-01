@@ -1,66 +1,47 @@
-var CACHE = 'cache-and-update-pdf';
+// Offline support. Bump VERSION whenever any file below changes, so visitors get the new copy.
+const VERSION = '2026-10-01';
+const CACHE = `unlock-pdf-${VERSION}`;
+const FILES = [
+	'./',
+	'index.html',
+	'style.css',
+	'app.js',
+	'engine.js',
+	'vendor/pdfium/pdfium.js',
+	'vendor/pdfium/pdfium.wasm',
+	'manifest.webmanifest',
+	'favicon.ico',
+	'favicon-16x16.png',
+	'favicon-32x32.png',
+	'apple-touch-icon.png',
+	'icon-192.png',
+	'icon-512.png',
+	'icon-maskable-512.png',
+];
 
-// On install, cache some resources.
-self.addEventListener('install', function(evt) {
-  console.log('The service worker is being installed.');
-
-  // Ask the service worker to keep installing until the returning promise
-  // resolves.
-  evt.waitUntil(precache());
+self.addEventListener('install', (event) => {
+	event.waitUntil(
+		caches.open(CACHE)
+			.then((cache) => cache.addAll(FILES.map((f) => new Request(f, { cache: 'reload' }))))
+			.then(() => self.skipWaiting()),
+	);
 });
 
-// On fetch, use cache but update the entry with the latest contents
-// from the server.
-self.addEventListener('fetch', function(evt) {
-  //console.log('The service worker is serving the asset.');
-  // You can use `respondWith()` to answer immediately, without waiting for the
-  // network response to reach the service worker...
-  evt.respondWith(fromCache(evt.request));
-  // ...and `waitUntil()` to prevent the worker from being killed until the
-  // cache is updated.
-  evt.waitUntil(update(evt.request));
+// Remove every other cache, including the ~400-file 'cache-and-update-pdf' from the old pdf.js version.
+self.addEventListener('activate', (event) => {
+	event.waitUntil(
+		caches.keys()
+			.then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+			.then(() => self.clients.claim()),
+	);
 });
 
-// Open a cache and use `addAll()` with an array of assets to add all of them
-// to the cache. Return a promise resolving when all the assets are added.
-function precache() {
-  return caches.open(CACHE).then(function (cache) {
-    return cache.addAll(
-    //\'\/pdf\/locale\/.{0,5}\/\'\,
-    //\'\/pdf.{0,11}\/\'\,
-    ['/pdf/','/pdf/favicon-16x16.png','/pdf/favicon.ico','/pdf/screenshots/f1.png','/pdf/screenshots/s1.png','/pdf/screenshots/f2.png','/pdf/screenshots/s2.png','/pdf/screenshots/c1.png','/pdf/screenshots/c2.png','/pdf/screenshots/c3.png','/pdf/index.html','/pdf/locale/sl/viewer.properties','/pdf/locale/sk/viewer.properties','/pdf/locale/ur/viewer.properties','/pdf/locale/fy-NL/viewer.properties','/pdf/locale/mai/viewer.properties','/pdf/locale/sw/viewer.properties','/pdf/locale/pl/viewer.properties','/pdf/locale/vi/viewer.properties','/pdf/locale/sq/viewer.properties','/pdf/locale/he/viewer.properties','/pdf/locale/ms/viewer.properties','/pdf/locale/km/viewer.properties','/pdf/locale/nn-NO/viewer.properties','/pdf/locale/be/viewer.properties','/pdf/locale/es-ES/viewer.properties','/pdf/locale/da/viewer.properties','/pdf/locale/mr/viewer.properties','/pdf/locale/kk/viewer.properties','/pdf/locale/ak/viewer.properties','/pdf/locale/es-CL/viewer.properties','/pdf/locale/mn/viewer.properties','/pdf/locale/ja/viewer.properties','/pdf/locale/el/viewer.properties','/pdf/locale/lv/viewer.properties','/pdf/locale/es-AR/viewer.properties','/pdf/locale/oc/viewer.properties','/pdf/locale/it/viewer.properties','/pdf/locale/ca/viewer.properties','/pdf/locale/is/viewer.properties','/pdf/locale/cs/viewer.properties','/pdf/locale/es-MX/viewer.properties','/pdf/locale/en-ZA/viewer.properties','/pdf/locale/nso/viewer.properties','/pdf/locale/te/viewer.properties','/pdf/locale/ga-IE/viewer.properties','/pdf/locale/ach/viewer.properties','/pdf/locale/ru/viewer.properties','/pdf/locale/tl/viewer.properties','/pdf/locale/en-GB/viewer.properties','/pdf/locale/hy-AM/viewer.properties','/pdf/locale/gu-IN/viewer.properties','/pdf/locale/xh/viewer.properties','/pdf/locale/ro/viewer.properties','/pdf/locale/zh-CN/viewer.properties','/pdf/locale/zu/viewer.properties','/pdf/locale/hi-IN/viewer.properties','/pdf/locale/uk/viewer.properties','/pdf/locale/sr/viewer.properties','/pdf/locale/pt-PT/viewer.properties','/pdf/locale/si/viewer.properties','/pdf/locale/ml/viewer.properties','/pdf/locale/ku/viewer.properties','/pdf/locale/mk/viewer.properties','/pdf/locale/an/viewer.properties','/pdf/locale/lij/viewer.properties','/pdf/locale/kn/viewer.properties','/pdf/locale/bn-IN/viewer.properties','/pdf/locale/bs/viewer.properties','/pdf/locale/zh-TW/viewer.properties','/pdf/locale/my/viewer.properties','/pdf/locale/ar/viewer.properties','/pdf/locale/nb-NO/viewer.properties','/pdf/locale/sah/viewer.properties','/pdf/locale/gl/viewer.properties','/pdf/locale/hr/viewer.properties','/pdf/locale/pt-BR/viewer.properties','/pdf/locale/hu/viewer.properties','/pdf/locale/nl/viewer.properties','/pdf/locale/bg/viewer.properties','/pdf/locale/ast/viewer.properties','/pdf/locale/af/viewer.properties','/pdf/locale/ka/viewer.properties','/pdf/locale/locale.properties','/pdf/locale/de/viewer.properties','/pdf/locale/as/viewer.properties','/pdf/locale/az/viewer.properties','/pdf/locale/gd/viewer.properties','/pdf/locale/csb/viewer.properties','/pdf/locale/br/viewer.properties','/pdf/locale/ko/viewer.properties','/pdf/locale/fi/viewer.properties','/pdf/locale/son/viewer.properties','/pdf/locale/eo/viewer.properties','/pdf/locale/id/viewer.properties','/pdf/locale/fr/viewer.properties','/pdf/locale/sv-SE/viewer.properties','/pdf/locale/lg/viewer.properties','/pdf/locale/et/viewer.properties','/pdf/locale/fa/viewer.properties','/pdf/locale/lt/viewer.properties','/pdf/locale/ff/viewer.properties','/pdf/locale/or/viewer.properties','/pdf/locale/cy/viewer.properties','/pdf/locale/ta-LK/viewer.properties','/pdf/locale/en-US/viewer.properties','/pdf/locale/eu/viewer.properties','/pdf/locale/bn-BD/viewer.properties','/pdf/locale/rm/viewer.properties','/pdf/locale/ta/viewer.properties','/pdf/locale/th/viewer.properties','/pdf/locale/tr/viewer.properties','/pdf/locale/rw/viewer.properties','/pdf/locale/tn/viewer.properties','/pdf/locale/wo/viewer.properties','/pdf/locale/pa-IN/viewer.properties','/pdf/images/toolbarButton-viewOutline-rtl@2x.png','/pdf/images/findbarButton-next-rtl@2x.png','/pdf/images/toolbarButton-sidebarToggle@2x.png','/pdf/images/toolbarButton-search@2x.png','/pdf/images/treeitem-collapsed.png','/pdf/images/toolbarButton-pageUp@2x.png','/pdf/images/secondaryToolbarButton-rotateCw@2x.png','/pdf/images/grab.cur','/pdf/images/toolbarButton-pageUp-rtl@2x.png','/pdf/images/toolbarButton-presentationMode.png','/pdf/images/toolbarButton-pageDown.png','/pdf/images/annotation-check.svg','/pdf/images/annotation-note.svg','/pdf/images/toolbarButton-presentationMode@2x.png','/pdf/images/toolbarButton-openFile@2x.png','/pdf/images/toolbarButton-zoomIn.png','/pdf/images/toolbarButton-pageDown-rtl@2x.png','/pdf/images/toolbarButton-pageUp-rtl.png','/pdf/images/toolbarButton-secondaryToolbarToggle-rtl@2x.png','/pdf/images/toolbarButton-viewThumbnail.png','/pdf/images/loading-icon.gif','/pdf/images/toolbarButton-print@2x.png','/pdf/images/toolbarButton-viewOutline-rtl.png','/pdf/images/findbarButton-next-rtl.png','/pdf/images/findbarButton-previous-rtl@2x.png','/pdf/images/toolbarButton-pageDown@2x.png','/pdf/images/toolbarButton-viewAttachments@2x.png','/pdf/images/secondaryToolbarButton-selectTool.png','/pdf/images/annotation-noicon.svg','/pdf/images/secondaryToolbarButton-rotateCcw@2x.png','/pdf/images/toolbarButton-sidebarToggle-rtl.png','/pdf/images/grabbing.cur','/pdf/images/annotation-insert.svg','/pdf/images/toolbarButton-pageUp.png','/pdf/images/toolbarButton-download@2x.png','/pdf/images/toolbarButton-download.png','/pdf/images/toolbarButton-sidebarToggle-rtl@2x.png','/pdf/images/annotation-paragraph.svg','/pdf/images/secondaryToolbarButton-handTool@2x.png','/pdf/images/toolbarButton-viewThumbnail@2x.png','/pdf/images/toolbarButton-secondaryToolbarToggle@2x.png','/pdf/images/treeitem-expanded.png','/pdf/images/annotation-key.svg','/pdf/images/loading-small@2x.png','/pdf/images/toolbarButton-sidebarToggle.png','/pdf/images/annotation-comment.svg','/pdf/images/toolbarButton-zoomIn@2x.png','/pdf/images/annotation-newparagraph.svg','/pdf/images/secondaryToolbarButton-documentProperties.png','/pdf/images/treeitem-collapsed-rtl@2x.png','/pdf/images/annotation-help.svg','/pdf/images/toolbarButton-search.png','/pdf/images/toolbarButton-secondaryToolbarToggle-rtl.png','/pdf/images/secondaryToolbarButton-rotateCcw.png','/pdf/images/toolbarButton-viewAttachments.png','/pdf/images/toolbarButton-zoomOut@2x.png','/pdf/images/findbarButton-next@2x.png','/pdf/images/findbarButton-next.png','/pdf/images/secondaryToolbarButton-rotateCw.png','/pdf/images/texture.png','/pdf/images/toolbarButton-zoomOut.png','/pdf/images/toolbarButton-openFile.png','/pdf/images/loading-small.png','/pdf/images/toolbarButton-print.png','/pdf/images/toolbarButton-viewOutline@2x.png','/pdf/images/treeitem-collapsed-rtl.png','/pdf/images/secondaryToolbarButton-handTool.png','/pdf/images/findbarButton-previous.png','/pdf/images/toolbarButton-bookmark.png','/pdf/images/shadow.png','/pdf/images/toolbarButton-secondaryToolbarToggle.png','/pdf/images/secondaryToolbarButton-documentProperties@2x.png','/pdf/images/treeitem-expanded@2x.png','/pdf/images/secondaryToolbarButton-firstPage@2x.png','/pdf/images/findbarButton-previous@2x.png','/pdf/images/secondaryToolbarButton-firstPage.png','/pdf/images/secondaryToolbarButton-selectTool@2x.png','/pdf/images/toolbarButton-menuArrows@2x.png','/pdf/images/toolbarButton-menuArrows.png','/pdf/images/toolbarButton-bookmark@2x.png','/pdf/images/toolbarButton-pageDown-rtl.png','/pdf/images/secondaryToolbarButton-lastPage@2x.png','/pdf/images/treeitem-collapsed@2x.png','/pdf/images/secondaryToolbarButton-lastPage.png','/pdf/images/findbarButton-previous-rtl.png','/pdf/images/toolbarButton-viewOutline.png','/pdf/compressed.tracemonkey-pldi-09.pdf','/pdf/viewer.js.map','/pdf/viewer.js','/pdf/cmaps/78-EUC-V.bcmap','/pdf/cmaps/GBKp-EUC-H.bcmap','/pdf/cmaps/Katakana.bcmap','/pdf/cmaps/KSCpc-EUC-H.bcmap','/pdf/cmaps/Adobe-CNS1-UCS2.bcmap','/pdf/cmaps/Adobe-CNS1-5.bcmap','/pdf/cmaps/Adobe-Japan1-6.bcmap','/pdf/cmaps/Adobe-Japan1-4.bcmap','/pdf/cmaps/Adobe-Japan1-UCS2.bcmap','/pdf/cmaps/HKscs-B5-H.bcmap','/pdf/cmaps/UniJISX0213-UTF32-H.bcmap','/pdf/cmaps/HKdla-B5-V.bcmap','/pdf/cmaps/ETenms-B5-H.bcmap','/pdf/cmaps/H.bcmap','/pdf/cmaps/Adobe-Korea1-UCS2.bcmap','/pdf/cmaps/UniJIS-UTF8-V.bcmap','/pdf/cmaps/WP-Symbol.bcmap','/pdf/cmaps/Add-H.bcmap','/pdf/cmaps/Adobe-Japan1-0.bcmap','/pdf/cmaps/Adobe-CNS1-3.bcmap','/pdf/cmaps/HKm314-B5-H.bcmap','/pdf/cmaps/UniCNS-UTF8-V.bcmap','/pdf/cmaps/LICENSE','/pdf/cmaps/ETHK-B5-H.bcmap','/pdf/cmaps/KSC-Johab-V.bcmap','/pdf/cmaps/Adobe-CNS1-1.bcmap','/pdf/cmaps/UniGB-UCS2-V.bcmap','/pdf/cmaps/Adobe-Japan1-2.bcmap','/pdf/cmaps/KSC-V.bcmap','/pdf/cmaps/UniJISPro-UTF8-V.bcmap','/pdf/cmaps/KSC-EUC-H.bcmap','/pdf/cmaps/RKSJ-H.bcmap','/pdf/cmaps/Add-RKSJ-V.bcmap','/pdf/cmaps/UniKS-UCS2-V.bcmap','/pdf/cmaps/78-V.bcmap','/pdf/cmaps/CNS-EUC-H.bcmap','/pdf/cmaps/HKm471-B5-V.bcmap','/pdf/cmaps/HKgccs-B5-H.bcmap','/pdf/cmaps/UniCNS-UTF8-H.bcmap','/pdf/cmaps/HKm314-B5-V.bcmap','/pdf/cmaps/Adobe-Japan1-5.bcmap','/pdf/cmaps/Adobe-CNS1-6.bcmap','/pdf/cmaps/Add-V.bcmap','/pdf/cmaps/UniJIS-UTF8-H.bcmap','/pdf/cmaps/UniJISPro-UCS2-HW-V.bcmap','/pdf/cmaps/HKgccs-B5-V.bcmap','/pdf/cmaps/HKm471-B5-H.bcmap','/pdf/cmaps/CNS-EUC-V.bcmap','/pdf/cmaps/78-H.bcmap','/pdf/cmaps/UniKS-UCS2-H.bcmap','/pdf/cmaps/KSC-EUC-V.bcmap','/pdf/cmaps/Add-RKSJ-H.bcmap','/pdf/cmaps/RKSJ-V.bcmap','/pdf/cmaps/Adobe-CNS1-4.bcmap','/pdf/cmaps/UniGB-UCS2-H.bcmap','/pdf/cmaps/KSC-Johab-H.bcmap','/pdf/cmaps/KSC-H.bcmap','/pdf/cmaps/ETHK-B5-V.bcmap','/pdf/cmaps/Adobe-CNS1-0.bcmap','/pdf/cmaps/Adobe-Japan1-3.bcmap','/pdf/cmaps/KSCpc-EUC-V.bcmap','/pdf/cmaps/GBKp-EUC-V.bcmap','/pdf/cmaps/78-EUC-H.bcmap','/pdf/cmaps/Roman.bcmap','/pdf/cmaps/V.bcmap','/pdf/cmaps/ETenms-B5-V.bcmap','/pdf/cmaps/HKdla-B5-H.bcmap','/pdf/cmaps/UniJISX0213-UTF32-V.bcmap','/pdf/cmaps/HKscs-B5-V.bcmap','/pdf/cmaps/Adobe-Japan1-1.bcmap','/pdf/cmaps/Adobe-CNS1-2.bcmap','/pdf/cmaps/90msp-RKSJ-V.bcmap','/pdf/cmaps/B5pc-V.bcmap','/pdf/cmaps/Adobe-GB1-1.bcmap','/pdf/cmaps/B5-H.bcmap','/pdf/cmaps/UniCNS-UTF16-V.bcmap','/pdf/cmaps/UniGB-UTF16-H.bcmap','/pdf/cmaps/Hankaku.bcmap','/pdf/cmaps/90ms-RKSJ-V.bcmap','/pdf/cmaps/EUC-V.bcmap','/pdf/cmaps/UniJIS2004-UTF16-H.bcmap','/pdf/cmaps/UniJIS2004-UTF8-H.bcmap','/pdf/cmaps/GBTpc-EUC-V.bcmap','/pdf/cmaps/UniCNS-UTF32-H.bcmap','/pdf/cmaps/UniGB-UTF32-V.bcmap','/pdf/cmaps/GBT-H.bcmap','/pdf/cmaps/78-RKSJ-H.bcmap','/pdf/cmaps/78ms-RKSJ-H.bcmap','/pdf/cmaps/HKdlb-B5-H.bcmap','/pdf/cmaps/83pv-RKSJ-H.bcmap','/pdf/cmaps/GBT-EUC-H.bcmap','/pdf/cmaps/UniJIS2004-UTF32-V.bcmap','/pdf/cmaps/GBpc-EUC-V.bcmap','/pdf/cmaps/Adobe-Korea1-1.bcmap','/pdf/cmaps/ETen-B5-H.bcmap','/pdf/cmaps/KSCms-UHC-HW-H.bcmap','/pdf/cmaps/CNS1-V.bcmap','/pdf/cmaps/GBK-EUC-H.bcmap','/pdf/cmaps/Ext-V.bcmap','/pdf/cmaps/Adobe-GB1-3.bcmap','/pdf/cmaps/UniJIS-UCS2-H.bcmap','/pdf/cmaps/CNS2-H.bcmap','/pdf/cmaps/UniKS-UTF16-V.bcmap','/pdf/cmaps/NWP-V.bcmap','/pdf/cmaps/KSCms-UHC-V.bcmap','/pdf/cmaps/GB-V.bcmap','/pdf/cmaps/UniJIS-UTF32-V.bcmap','/pdf/cmaps/UniJIS-UCS2-HW-H.bcmap','/pdf/cmaps/UniCNS-UCS2-H.bcmap','/pdf/cmaps/UniJISX02132004-UTF32-H.bcmap','/pdf/cmaps/UniGB-UTF8-H.bcmap','/pdf/cmaps/GB-EUC-V.bcmap','/pdf/cmaps/UniJIS-UTF16-H.bcmap','/pdf/cmaps/Adobe-GB1-5.bcmap','/pdf/cmaps/UniKS-UTF8-H.bcmap','/pdf/cmaps/UniKS-UTF32-H.bcmap','/pdf/cmaps/90pv-RKSJ-H.bcmap','/pdf/cmaps/GBK2K-V.bcmap','/pdf/cmaps/Ext-RKSJ-V.bcmap','/pdf/cmaps/UniCNS-UCS2-V.bcmap','/pdf/cmaps/UniJIS-UCS2-HW-V.bcmap','/pdf/cmaps/UniJIS-UTF32-H.bcmap','/pdf/cmaps/GB-H.bcmap','/pdf/cmaps/KSCms-UHC-H.bcmap','/pdf/cmaps/NWP-H.bcmap','/pdf/cmaps/UniKS-UTF16-H.bcmap','/pdf/cmaps/Adobe-GB1-2.bcmap','/pdf/cmaps/CNS2-V.bcmap','/pdf/cmaps/Hiragana.bcmap','/pdf/cmaps/UniJIS-UCS2-V.bcmap','/pdf/cmaps/Adobe-Korea1-0.bcmap','/pdf/cmaps/GBK2K-H.bcmap','/pdf/cmaps/90pv-RKSJ-V.bcmap','/pdf/cmaps/Ext-RKSJ-H.bcmap','/pdf/cmaps/Adobe-Korea1-2.bcmap','/pdf/cmaps/UniKS-UTF32-V.bcmap','/pdf/cmaps/UniKS-UTF8-V.bcmap','/pdf/cmaps/Adobe-GB1-0.bcmap','/pdf/cmaps/UniJIS-UTF16-V.bcmap','/pdf/cmaps/UniJISPro-UCS2-V.bcmap','/pdf/cmaps/GB-EUC-H.bcmap','/pdf/cmaps/UniGB-UTF8-V.bcmap','/pdf/cmaps/UniJISX02132004-UTF32-V.bcmap','/pdf/cmaps/GBTpc-EUC-H.bcmap','/pdf/cmaps/Adobe-GB1-UCS2.bcmap','/pdf/cmaps/UniJIS2004-UTF16-V.bcmap','/pdf/cmaps/UniJIS2004-UTF8-V.bcmap','/pdf/cmaps/90ms-RKSJ-H.bcmap','/pdf/cmaps/EUC-H.bcmap','/pdf/cmaps/UniGB-UTF16-V.bcmap','/pdf/cmaps/UniCNS-UTF16-H.bcmap','/pdf/cmaps/B5pc-H.bcmap','/pdf/cmaps/90msp-RKSJ-H.bcmap','/pdf/cmaps/B5-V.bcmap','/pdf/cmaps/Adobe-GB1-4.bcmap','/pdf/cmaps/Ext-H.bcmap','/pdf/cmaps/GBK-EUC-V.bcmap','/pdf/cmaps/CNS1-H.bcmap','/pdf/cmaps/ETen-B5-V.bcmap','/pdf/cmaps/KSCms-UHC-HW-V.bcmap','/pdf/cmaps/UniJIS2004-UTF32-H.bcmap','/pdf/cmaps/GBpc-EUC-H.bcmap','/pdf/cmaps/GBT-EUC-V.bcmap','/pdf/cmaps/HKdlb-B5-V.bcmap','/pdf/cmaps/78ms-RKSJ-V.bcmap','/pdf/cmaps/78-RKSJ-V.bcmap','/pdf/cmaps/GBT-V.bcmap','/pdf/cmaps/UniGB-UTF32-H.bcmap','/pdf/cmaps/UniCNS-UTF32-V.bcmap','/pdf/viewer.css','/pdf/service-worker.js','/pdf/build/pdf.js','/pdf/build/pdf.worker.js.map','/pdf/build/pdf.worker.js','/pdf/build/pdf.js.map','/pdf/debugger.js','/pdf/favicon-32x32.png','/pdf/pdf-unlock.js']
-    
-    );
-  });
-}
-
-// Open the cache where the assets were stored and search for the requested
-// resource. Notice that in case of no matching, the promise still resolves
-// but it does with `undefined` as value.
-function fromCache(request) {
-  return caches.open(CACHE).then(function (cache) {
-    return cache.match(request).then(function (matching) {
-      console.log('fromcache request', request);
-      if (!matching && navigator.onLine) {
-      	return fetch(request);
-      }
-      return matching || Promise.reject('no-match, offline');
-    });
-  });
-}
-
-// Update consists in opening the cache, performing a network request and
-// storing the new response data.
-function update(request) {
-  return caches.open(CACHE).then(function (cache) {
-    return fetch(request).then(function (response) {
-      return cache.put(request, response);
-    }).catch(function(error){
-    	console.log(error);
-    	//do nothing
-    	return new Promise(function(resolve,reject){
-    		resolve();
-    	});
-    });
-  });
-}
+// Cache first, so it works offline; fall back to the network for anything not cached.
+self.addEventListener('fetch', (event) => {
+	if (event.request.method !== 'GET' || new URL(event.request.url).origin !== self.location.origin) return;
+	event.respondWith(
+		caches.open(CACHE)
+			.then((cache) => cache.match(event.request, { ignoreSearch: true }))
+			.then((cached) => cached || fetch(event.request)),
+	);
+});
