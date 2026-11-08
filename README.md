@@ -19,15 +19,19 @@ After changing any file, bump `VERSION` in `service-worker.js` (otherwise return
 
 ### Updating PDFium
 
-The only dependency. Check for a new version roughly once a year.
+The only dependency. Check for a new version roughly once a year. It comes as two npm packages from EmbedPDF, which must be the same version: `@embedpdf/engine-runtime` (the loader) and `@embedpdf/engine-runtime-wasm32` (the engine). Up to 2.15.1 it was `@embedpdf/pdfium`, which is no longer updated.
 
 ```sh
-npm pack @embedpdf/pdfium && tar xzf embedpdf-pdfium-*.tgz
-cp package/dist/index.browser.js vendor/pdfium/pdfium.js && cp package/dist/pdfium.wasm vendor/pdfium/
-cp package/LICENSE vendor/pdfium/LICENSE && cp package/LICENSE.pdfium vendor/pdfium/LICENSE.pdfium
+mkdir tmp-pdfium && cd tmp-pdfium
+npm pack @embedpdf/engine-runtime @embedpdf/engine-runtime-wasm32
+mkdir runtime wasm32 && tar xzf embedpdf-engine-runtime-[0-9]*.tgz -C runtime && tar xzf embedpdf-engine-runtime-wasm32-*.tgz -C wasm32
+sed "s#import('@embedpdf/engine-runtime-wasm32')#import('./pdfium-wasm.js')#" runtime/package/dist/index.browser.js > ../vendor/pdfium/pdfium.js
+cp wasm32/package/lib/embedpdf.browser.js ../vendor/pdfium/pdfium-wasm.js && cp wasm32/package/lib/embedpdf.wasm ../vendor/pdfium/pdfium.wasm
+cp runtime/package/LICENSE ../vendor/pdfium/LICENSE
+cd .. && grep -c "import('./pdfium-wasm.js')" vendor/pdfium/pdfium.js
 ```
 
-Then update the version in the Files table below, bump `VERSION` and run `npm test`. If the tests fail, a PDFium function used in `engine.js` has probably been renamed; `package/dist/index.d.ts` lists the current names. Delete `package/` and the `.tgz` once the tests pass.
+The last command must print 1: without a bundler, the loader's import of the engine package has to be rewritten to a relative path. Then update the version in the Files table below, bump `VERSION` and run `npm test`. If the tests fail, a PDFium function used in `engine.js` has probably been renamed; `tmp-pdfium/runtime/package/dist/core/pdf-functions.generated.d.ts` lists the current names. Delete `tmp-pdfium/` once the tests pass.
 
 ### Tests
 
@@ -49,17 +53,17 @@ Not covered by the tests: real iOS and Android share menus, password-manager pro
 | `app.js` | File list, password prompts, download and share buttons |
 | `engine.js` | Calls PDFium: open with password, remove encryption, save a copy, render a thumbnail |
 | `service-worker.js` | Offline cache (cache first, versioned) |
-| `vendor/pdfium/` | `@embedpdf/pdfium` 2.15.1 (`dist/index.browser.js` renamed to `pdfium.js`, plus `pdfium.wasm` and licences) |
+| `vendor/pdfium/` | EmbedPDF Runtime 3.1.0, EmbedPDF's build of its PDFium fork: `pdfium.js` from `@embedpdf/engine-runtime`, `pdfium-wasm.js` and `pdfium.wasm` from `@embedpdf/engine-runtime-wasm32`, plus licences |
 | `tests/` | `test.mjs` (site, in browsers), `mupdf.mjs` (comparison), `cases.mjs` (what each test PDF is), `make_fixtures.py`, `fixtures/` |
 
 ## Decisions
 
 Made in October 2026 when this replaced the pdf.js 2.2 version, which printed pages as 150 DPI images (losing text and links) and was affected by CVE-2024-4367.
 
-- PDFium for unlocking, over MuPDF. The deciding reason was that PDFium's errors separate a wrong password, a damaged file and an unsupported security handler (DRM or certificates), which drives the page's different messages. Later testing showed MuPDF can make the same distinction through its error messages (`unknown encryption handler`), as text rather than PDFium's numeric codes, and it now matches the page's expected result on every test PDF. So the choice is close and worth revisiting; the `mupdf (comparison only)` line in `npm test` shows the current state. MuPDF's AGPL licence would be fine. qpdf isn't an option because it can't render pages, so thumbnails would need a second engine. Any engine considered later, including ones that don't exist yet, needs to decrypt, render and report why a file failed.
+- PDFium for unlocking, over MuPDF. The deciding reason was that PDFium's errors separate a wrong password, a damaged file and an unsupported security handler (DRM or certificates), which drives the page's different messages. Later testing showed MuPDF can make the same distinction through its error messages (`unknown encryption handler`), as text rather than PDFium's numeric codes, and it now matches the page's expected result on every test PDF. So the choice is close and worth revisiting. A comparison in November 2026 (EmbedPDF Runtime 3.1.0 against MuPDF 1.28.1, in Chromium, WebKit and Firefox) found both correct on every test PDF, but MuPDF took 2-4 times as long to unlock and is a 4.7 MB download against 3.3 MB. The `mupdf (comparison only)` line in `npm test` shows the current state. MuPDF's AGPL licence would be fine. qpdf isn't an option because it can't render pages, so thumbnails would need a second engine. Any engine considered later, including ones that don't exist yet, needs to decrypt, render and report why a file failed.
 - No build step, dependency copied into `vendor/`. Nothing to install to edit the site, and nothing loads from a CDN, which keeps the privacy claim simple.
 - Unlocking runs on the page, not in a Web Worker. The CSP is a `<meta>` tag, which only covers the page; a worker would have none, because GitHub Pages can't set headers. The cost is that a very large file can freeze the page briefly.
-- The engine (2.1 MB compressed) starts downloading when the page loads, so the first unlock is instant.
+- The engine (3.3 MB compressed) starts downloading when the page loads, so the first unlock is instant.
 - The password field is `type="text"`, masked with `-webkit-text-security` when hidden. A `type="password"` field makes browsers and password managers offer to save a password that's only needed once. It's visible by default because mistyping a hidden password is the easiest way to get stuck.
 - Share appears only on touch devices (`pointer: coarse` plus `navigator.canShare`). On computers, Download is what people expect.
 - Written for people who find reading hard: one heading, one large button, icons on every status, 18px text, 48px buttons. The full filename on the Download button, the status wording and multi-file selection were kept on purpose.
@@ -68,4 +72,4 @@ Made in October 2026 when this replaced the pdf.js 2.2 version, which printed pa
 
 ## Licence
 
-GPLv3. `@embedpdf/pdfium` is MIT and PDFium is BSD-3-Clause/Apache-2.0; see `vendor/pdfium/`.
+GPLv3. EmbedPDF Runtime is Apache-2.0 (`vendor/pdfium/LICENSE`) and PDFium is BSD-3-Clause/Apache-2.0 (`vendor/pdfium/LICENSE.pdfium`, kept from the 2.x package because the 3.x packages don't include it).
