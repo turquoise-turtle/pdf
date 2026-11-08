@@ -1,0 +1,13 @@
+{
+	"private": true,
+	"description": "Only for running tests. The site itself has no build step or dependencies.",
+	"type": "module",
+	"scripts": {
+		"test": "node tests/test.mjs",
+		"setup": "npm install && npx playwright install chromium webkit firefox"
+	},
+	"devDependencies": {
+		"mupdf": "1.28.1",
+		"playwright": "1.63.0"
+	}
+}

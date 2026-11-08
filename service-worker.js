@@ -1,5 +1,5 @@
 // Offline support. Bump VERSION whenever any file below changes, so visitors get the new copy.
-const VERSION = '2026-10-01';
+const VERSION = '2026-11-09';
 const CACHE = `unlock-pdf-${VERSION}`;
 const FILES = [
 	'./',
@@ -8,6 +8,7 @@ const FILES = [
 	'app.js',
 	'engine.js',
 	'vendor/pdfium/pdfium.js',
+	'vendor/pdfium/pdfium-wasm.js',
 	'vendor/pdfium/pdfium.wasm',
 	'manifest.webmanifest',
 	'favicon.ico',
